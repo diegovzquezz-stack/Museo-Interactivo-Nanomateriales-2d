@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Museo Interactivo de Nanomateriales 2D</title>
+  <style>
+    :root {
+      --bg1: #081120;
+      --bg2: #0f1f3a;
+      --panel: rgba(255,255,255,0.10);
+      --panel-strong: rgba(255,255,255,0.16);
+      --text: #eef4ff;
+      --muted: #b9c7e6;
+      --accent: #42d4ff;
+      --accent2: #8e7dff;
+      --accent3: #47f0a3;
+      --danger: #ff7f96;
+      --shadow: 0 20px 40px rgba(0,0,0,0.35);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(66,212,255,0.20), transparent 22%),
+        radial-gradient(circle at top right, rgba(142,125,255,0.18), transparent 20%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      opacity: 0.35;
+    }
+
+    .app {
+      width: min(1200px, 94vw);
+      margin: 0 auto;
+      padding: 24px 0 36px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-bottom: 22px;
+      backdrop-filter: blur(12px);
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(66,212,255,0.12);
+      color: #ccf6ff;
+      border: 1px solid rgba(66,212,255,0.28);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.04;
+    }
+
+    .subtitle {
+      margin: 14px 0 0;
+      max-width: 780px;
+      font-size: 1.07rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-2px); }
+
+    .btn {
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-weight: bold;
+      font-size: 0.98rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #071427;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .kpi {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .kpi strong {
+      display: block;
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+      color: #ffffff;
+    }
+
+    .kpi span {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .search-box, .nav-box {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 18px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      min-width: 260px;
+      font-size: 0.98rem;
+    }
+
+    .search-box input::placeholder { color: #ced6ef; }
+
+    .nav-box {
+      flex-wrap: wrap;
+    }
+
+    .nav-box .tab {
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: bold;
+      border: 1px solid transparent;
+    }
+
+    .nav-box .tab.active {
+      background: rgba(71,240,163,0.16);
+      border-color: rgba(71,240,163,0.35);
+      color: #dbfff1;
+    }
+
+    .screen {
+      display: none;
+      animation: fade 0.35s ease;
+    }
+
+    .screen.active { display: block; }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.08));
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      min-height: 290px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      right: -35px;
+      top: -35px;
+      background: radial-gradient(circle, rgba(255,255,255,0.20), transparent 70%);
+      pointer-events: none;
+    }
+
+    .material-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 2rem;
+      margin-bottom: 14px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 1.3rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0 18px;
+    }
+
+    .pill {
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #eef6ff;
+    }
+
+    .card .btn {
+      width: 100%;
+      margin-top: auto;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .back-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 1.55rem;
+    }
+
+    .lead {
+      color: var(--muted);
+      line-height: 1.65;
+      margin-top: 0;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .info-box {
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .info-box h4 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: #ffffff;
+    }
+
+    .info-box ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .visual-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .mini-lab {
+      background: rgba(255,255,255,0.08);
+      border-radius: 22px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .mini-lab h4 {
+      margin: 0 0 8px;
+    }
+
+    .slider-group {
+      margin-top: 12px;
+    }
+
+    .slider-group label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      height: 240px;
+      padding: 16px 10px 8px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .bar-wrap {
+      flex: 1;
+      text-align: center;
+    }
+
+    .bar {
+      width: 100%;
+      border-radius: 16px 16px 8px 8px;
+      min-height: 22px;
+      transition: height 0.35s ease;
+      box-shadow: inset 0 -8px 14px rgba(0,0,0,0.18);
+      position: relative;
+    }
+
+    .bar-value {
+      font-size: 0.82rem;
+      color: #ffffff;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .bar-label {
+      margin-top: 8px;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .museum-map {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 18px;
+    }
+
+    .zone {
+      background: linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.13);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .zone h3 {
+      margin-top: 0;
+    }
+
+    .zone p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .zone ul {
+      color: var(--muted);
+      line-height: 1.65;
+      padding-left: 18px;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-top: 22px;
+      padding-bottom: 10px;
+    }
+
+    .nano-visual {
+      height: 220px;
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), transparent 30%), rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .hex-grid, .layers, .ring-field, .sheet-points {
+      position: absolute;
+      inset: 0;
+    }
+
+    .hex-grid::before,
+    .hex-grid::after,
+    .layers::before,
+    .ring-field::before,
+    .sheet-points::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+    }
+
+    .hex-grid::before {
+      background-image:
+        radial-gradient(circle, rgba(66,212,255,0.95) 0 3px, transparent 4px),
+        radial-gradient(circle, rgba(142,125,255,0.95) 0 3px, transparent 4px);
+      background-size: 44px 38px, 44px 38px;
+      background-position: 0 0, 22px 19px;
+      opacity: 0.95;
+      animation: floatGrid 5s linear infinite;
+    }
+
+    .layers::before {
+      background:
+        linear-gradient(0deg, transparent 8%, rgba(71,240,163,0.95) 8% 12%, transparent 12% 24%, rgba(66,212,255,0.95) 24% 28%, transparent 28% 40%, rgba(142,125,255,0.95) 40% 44%, transparent 44%);
+      transform: skewY(-8deg);
+      opacity: 0.9;
+      animation: pulse 3.2s ease-in-out infinite;
+    }
+
+    .ring-field::before {
+      background:
+        radial-gradient(circle at 30% 35%, rgba(255,127,150,0.95) 0 10px, transparent 12px),
+        radial-gradient(circle at 70% 38%, rgba(71,240,163,0.95) 0 10px, transparent 12px),
+        radial-gradient(circle at 50% 65%, rgba(66,212,255,0.95) 0 10px, transparent 12px),
+        radial-gradient(circle at 50% 50%, transparent 0 34px, rgba(255,255,255,0.75) 35px 37px, transparent 38px),
+        radial-gradient(circle at 30% 35%, transparent 0 24px, rgba(255,255,255,0.65) 25px 27px, transparent 28px),
+        radial-gradient(circle at 70% 38%, transparent 0 24px, rgba(255,255,255,0.65) 25px 27px, transparent 28px),
+        radial-gradient(circle at 50% 65%, transparent 0 24px, rgba(255,255,255,0.65) 25px 27px, transparent 28px);
+      animation: orbit 6s linear infinite;
+    }
+
+    .sheet-points::before {
+      background-image: radial-gradient(circle, rgba(255,255,255,0.92) 0 4px, transparent 5px);
+      background-size: 34px 34px;
+      transform: rotate(12deg) scale(1.15);
+      opacity: 0.7;
+      animation: floatGrid 7s linear infinite reverse;
+    }
+
+    @keyframes floatGrid {
+      from { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+      to { transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: skewY(-8deg) translateY(0); }
+      50% { transform: skewY(-8deg) translateY(-6px); }
+    }
+
+    @keyframes orbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 1050px) {
+      .cards { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .layout { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .cards, .museum-map, .info-grid, .kpis { grid-template-columns: 1fr; }
+      .search-box input { min-width: 140px; width: 100%; }
+      .toolbar { align-items: stretch; }
+      .search-box, .nav-box { width: 100%; }
+      .hero { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="badge">Museo interactivo · Nanomateriales 2D · Proyecto educativo</div>
+          <h1>Explora el mundo de los nanomateriales 2D</h1>
+          <p class="subtitle">
+            Un museo virtual pensado para público general. Aquí puedes entrar al menú, seleccionar un nanomaterial, descubrir sus propiedades,
+            ver aplicaciones reales y comparar su desempeño con gráficos interactivos.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="showScreen('menu')">Entrar al museo</button>
+            <button class="btn btn-secondary" onclick="showScreen('mapa')">Ver recorrido del museo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><strong>4</strong><span>Nanomateriales interactivos</span></div>
+        <div class="kpi"><strong>12+</strong><span>Aplicaciones explicadas</span></div>
+        <div class="kpi"><strong>1</strong><span>Comparador con gráficas</span></div>
+        <div class="kpi"><strong>100%</strong><span>Enfocado en divulgación</span></div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="nav-box">
+        <button class="tab active" data-target="menu" onclick="showScreen('menu')">Menú</button>
+        <button class="tab" data-target="detalle" onclick="openMaterial('grafeno')">Material destacado</button>
+        <button class="tab" data-target="comparador" onclick="showScreen('comparador')">Comparador</button>
+        <button class="tab" data-target="mapa" onclick="showScreen('mapa')">Museo</button>
+      </div>
+
+      <div class="search-box">
+        <span>Buscar:</span>
+        <input id="searchInput" type="text" placeholder="Ej. grafeno, sensores, energía" oninput="filterMaterials()" />
+      </div>
+    </div>
+
+    <section id="menu" class="screen active">
+      <div class="cards" id="cardsContainer"></div>
+    </section>
+
+    <section id="detalle" class="screen">
+      <div class="layout">
+        <div class="panel">
+          <div class="back-row">
+            <button class="btn btn-secondary" onclick="showScreen('menu')">← Regresar al menú</button>
+            <button class="btn btn-primary" onclick="showScreen('comparador')">Ir al comparador</button>
+          </div>
+          <h2 id="detailTitle" class="section-title"></h2>
+          <p id="detailLead" class="lead"></p>
+          <div class="info-grid">
+            <div class="info-box">
+              <h4>Propiedades clave</h4>
+              <ul id="detailProps"></ul>
+            </div>
+            <div class="info-box">
+              <h4>Aplicaciones</h4>
+              <ul id="detailApps"></ul>
+            </div>
+            <div class="info-box">
+              <h4>Ventajas</h4>
+              <ul id="detailBenefits"></ul>
+            </div>
+            <div class="info-box">
+              <h4>Retos</h4>
+              <ul id="detailChallenges"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel visual-card">
+          <div id="detailVisual" class="nano-visual"></div>
+
+          <div class="mini-lab">
+            <h4>Mini laboratorio interactivo</h4>
+            <p class="lead" style="font-size:0.95rem; margin-bottom: 8px;">
+              Mueve los controles para simular cómo cambia el interés del museo en una aplicación específica del material.
+            </p>
+
+            <div class="slider-group">
+              <label><span>Impacto tecnológico</span><strong id="impactValue">75</strong></label>
+              <input id="impactRange" type="range" min="20" max="100" value="75" oninput="updateLab()" />
+            </div>
+
+            <div class="slider-group">
+              <label><span>Facilidad de implementación</span><strong id="easeValue">60</strong></label>
+              <input id="easeRange" type="range" min="20" max="100" value="60" oninput="updateLab()" />
+            </div>
+
+            <div class="slider-group">
+              <label><span>Interés del público</span><strong id="interestValue">80</strong></label>
+              <input id="interestRange" type="range" min="20" max="100" value="80" oninput="updateLab()" />
+            </div>
+
+            <p id="labResult" class="lead" style="margin: 12px 0 0;"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="comparador" class="screen">
+      <div class="panel">
+        <div class="back-row">
+          <button class="btn btn-secondary" onclick="showScreen('menu')">← Regresar al menú</button>
+          <button class="btn btn-primary" onclick="randomizeChart()">Actualizar gráfica</button>
+        </div>
+        <h2 class="section-title">Comparador visual de materiales</h2>
+        <p class="lead">
+          Esta sección muestra una comparación general entre los nanomateriales 2D del museo. El eje vertical representa un valor relativo para explicar al público
+          qué materiales destacan más en ciertas categorías. No pretende sustituir datos experimentales exactos, sino ayudar a visualizar tendencias.
+        </p>
+
+        <div class="slider-group" style="max-width: 420px; margin-bottom: 18px;">
+          <label><span>Categoría a comparar</span><strong id="chartModeLabel">Conductividad</strong></label>
+          <input id="modeRange" type="range" min="0" max="3" value="0" step="1" oninput="updateChartMode()" />
+        </div>
+
+        <div class="bar-chart" id="barChart"></div>
+      </div>
+    </section>
+
+    <section id="mapa" class="screen">
+      <div class="panel">
+        <div class="back-row">
+          <button class="btn btn-secondary" onclick="showScreen('menu')">← Regresar al menú</button>
+          <button class="btn btn-primary" onclick="showScreen('comparador')">Ver comparador</button>
+        </div>
+        <h2 class="section-title">Diseño conceptual del museo interactivo</h2>
+        <p class="lead">
+          Este museo puede presentarse como experiencia virtual o como instalación física. La idea es que el visitante primero entienda qué es un nanomaterial 2D,
+          luego explore ejemplos concretos y al final compare aplicaciones en salud, energía, electrónica y medio ambiente.
+        </p>
+
+        <div class="museum-map">
+          <div class="zone">
+            <h3>Zona 1 · Bienvenida inmersiva</h3>
+            <p>
+              Pantalla inicial con animaciones, definición sencilla de nanomateriales 2D y una introducción visual a por qué son importantes en la ingeniería moderna.
+            </p>
+            <ul>
+              <li>Video corto de entrada</li>
+              <li>Mapa del museo</li>
+              <li>Pregunta detonadora para el visitante</li>
+            </ul>
+          </div>
+          <div class="zone">
+            <h3>Zona 2 · Galería de materiales</h3>
+            <p>
+              Sección con fichas interactivas para que el visitante seleccione materiales como grafeno, MoS₂, h-BN y MXenes y descubra qué los hace especiales.
+            </p>
+            <ul>
+              <li>Tarjetas táctiles o clickeables</li>
+              <li>Iconos llamativos</li>
+              <li>Mini simulaciones</li>
+            </ul>
+          </div>
+          <div class="zone">
+            <h3>Zona 3 · Aplicaciones reales</h3>
+            <p>
+              Área que conecta cada material con casos de uso: sensores, baterías, pantallas, recubrimientos, filtración de agua y dispositivos biomédicos.
+            </p>
+            <ul>
+              <li>Infografías</li>
+              <li>Modelos 3D</li>
+              <li>Retos interactivos para el público</li>
+            </ul>
+          </div>
+          <div class="zone">
+            <h3>Zona 4 · Comparador y reflexión final</h3>
+            <p>
+              Cierre del recorrido con gráficas comparativas y una pregunta final: ¿qué nanomaterial podría transformar más nuestra vida diaria en el futuro?
+            </p>
+            <ul>
+              <li>Gráficos sencillos</li>
+              <li>Encuesta del visitante</li>
+              <li>Conclusión educativa</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer-note">Museo interactivo diseñado para divulgar propiedades y aplicaciones de nanomateriales 2D de forma clara, visual y entretenida.</p>
+  </div>
+
+  <script>
+    const materials = {
+      grafeno: {
+        name: "Grafeno",
+        icon: "⬢",
+        color: "linear-gradient(135deg, #42d4ff, #8e7dff)",
+        desc: "Una sola capa de átomos de carbono organizada en red hexagonal. Es uno de los nanomateriales 2D más conocidos por su combinación de ligereza, gran resistencia y excelente conductividad.",
+        properties: [
+          "Alta conductividad eléctrica",
+          "Muy buena conductividad térmica",
+          "Gran resistencia mecánica",
+          "Flexibilidad y espesor extremadamente pequeño"
+        ],
+        applications: [
+          "Pantallas flexibles",
+          "Sensores químicos y biológicos",
+          "Electrodos para baterías y supercapacitores",
+          "Materiales compuestos de alto desempeño"
+        ],
+        benefits: [
+          "Permite dispositivos más ligeros y rápidos",
+          "Aumenta sensibilidad en sensores",
+          "Mejora transferencia de calor y electricidad"
+        ],
+        challenges: [
+          "Producción a gran escala con calidad uniforme",
+          "Costo y complejidad de integración industrial",
+          "Control preciso de defectos y pureza"
+        ],
+        visual: '<div class="hex-grid"></div>'
+      },
+      mos2: {
+        name: "Disulfuro de molibdeno (MoS₂)",
+        icon: "◈",
+        color: "linear-gradient(135deg, #47f0a3, #42d4ff)",
+        desc: "Material 2D con propiedades semiconductoras muy atractivas. Se estudia mucho en transistores, fotodetectores y sensores debido a su comportamiento electrónico.",
+        properties: [
+          "Comportamiento semiconductor",
+          "Buen desempeño en capas ultradelgadas",
+          "Respuesta óptica interesante",
+          "Adecuado para electrónica a nanoescala"
+        ],
+        applications: [
+          "Transistores de nueva generación",
+          "Fotodetectores",
+          "Sensores flexibles",
+          "Electrónica portátil"
+        ],
+        benefits: [
+          "Ayuda a miniaturizar dispositivos",
+          "Favorece sistemas electrónicos flexibles",
+          "Ofrece buenas propiedades optoelectrónicas"
+        ],
+        challenges: [
+          "Síntesis uniforme en gran área",
+          "Estabilidad y control de interfaces",
+          "Escalamiento industrial"
+        ],
+        visual: '<div class="layers"></div>'
+      },
+      hbn: {
+        name: "Nitruro de boro hexagonal (h-BN)",
+        icon: "⬡",
+        color: "linear-gradient(135deg, #ffd166, #ff7f96)",
+        desc: "Conocido como el grafeno blanco. Tiene estructura parecida, pero se comporta como aislante eléctrico y destaca por su estabilidad térmica y química.",
+        properties: [
+          "Aislante eléctrico",
+          "Alta estabilidad térmica",
+          "Buena resistencia química",
+          "Superficie útil para heteroestructuras"
+        ],
+        applications: [
+          "Capas aislantes en nanoelectrónica",
+          "Recubrimientos protectores",
+          "Sistemas multicapa con otros materiales 2D",
+          "Dispositivos de alta temperatura"
+        ],
+        benefits: [
+          "Protege y aísla componentes delicados",
+          "Mejora estabilidad del sistema",
+          "Útil en estructuras híbridas avanzadas"
+        ],
+        challenges: [
+          "Procesos de fabricación especializados",
+          "Integración con otras capas funcionales",
+          "Costo en ciertas rutas de síntesis"
+        ],
+        visual: '<div class="sheet-points"></div>'
+      },
+      mxenes: {
+        name: "MXenes",
+        icon: "✦",
+        color: "linear-gradient(135deg, #ff7f96, #8e7dff)",
+        desc: "Familia de materiales 2D derivada de carburos o nitruros metálicos. Han ganado mucha atención por su conductividad y por su potencial en almacenamiento de energía y tratamiento de agua.",
+        properties: [
+          "Alta conductividad en muchos casos",
+          "Superficie funcionalizable",
+          "Buen desempeño electroquímico",
+          "Interacción favorable con iones y moléculas"
+        ],
+        applications: [
+          "Supercapacitores",
+          "Baterías",
+          "Blindaje electromagnético",
+          "Filtración y purificación de agua"
+        ],
+        benefits: [
+          "Prometen alto rendimiento energético",
+          "Permiten múltiples modificaciones superficiales",
+          "Son versátiles en electrónica y ambiente"
+        ],
+        challenges: [
+          "Estabilidad ambiental",
+          "Oxidación en ciertas condiciones",
+          "Necesidad de producción controlada"
+        ],
+        visual: '<div class="ring-field"></div>'
+      }
+    };
+
+    const chartModes = [
+      {
+        name: "Conductividad",
+        values: { grafeno: 95, mos2: 62, hbn: 22, mxenes: 88 }
+      },
+      {
+        name: "Uso en sensores",
+        values: { grafeno: 90, mos2: 85, hbn: 52, mxenes: 78 }
+      },
+      {
+        name: "Potencial en energía",
+        values: { grafeno: 82, mos2: 70, hbn: 35, mxenes: 94 }
+      },
+      {
+        name: "Estabilidad térmica",
+        values: { grafeno: 80, mos2: 68, hbn: 93, mxenes: 60 }
+      }
+    ];
+
+    let currentMaterial = 'grafeno';
+    let currentChartMode = 0;
+
+    function renderCards(filter = '') {
+      const container = document.getElementById('cardsContainer');
+      container.innerHTML = '';
+      const query = filter.trim().toLowerCase();
+
+      Object.entries(materials).forEach(([key, material]) => {
+        const searchable = [material.name, material.desc, ...material.properties, ...material.applications].join(' ').toLowerCase();
+        if (query && !searchable.includes(query)) return;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div>
+            <div class="material-icon" style="background:${material.color};">${material.icon}</div>
+            <h3>${material.name}</h3>
+            <p>${material.desc}</p>
+            <div class="pill-row">
+              ${material.applications.slice(0,3).map(item => `<span class="pill">${item}</span>`).join('')}
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="openMaterial('${key}')">Explorar material</button>
+        `;
+        container.appendChild(card);
+      });
+
+      if (!container.children.length) {
+        container.innerHTML = '<div class="panel" style="grid-column:1/-1;"><h3 style="margin-top:0;">No se encontraron coincidencias</h3><p class="lead">Intenta con otra palabra, por ejemplo: grafeno, sensores, energía o agua.</p></div>';
+      }
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.toggle('active', tab.dataset.target === id));
+    }
+
+    function openMaterial(key) {
+      currentMaterial = key;
+      const m = materials[key];
+      document.getElementById('detailTitle').textContent = m.name;
+      document.getElementById('detailLead').textContent = m.desc;
+      document.getElementById('detailProps').innerHTML = m.properties.map(x => `<li>${x}</li>`).join('');
+      document.getElementById('detailApps').innerHTML = m.applications.map(x => `<li>${x}</li>`).join('');
+      document.getElementById('detailBenefits').innerHTML = m.benefits.map(x => `<li>${x}</li>`).join('');
+      document.getElementById('detailChallenges').innerHTML = m.challenges.map(x => `<li>${x}</li>`).join('');
+      document.getElementById('detailVisual').innerHTML = m.visual;
+      updateLab();
+      showScreen('detalle');
+    }
+
+    function filterMaterials() {
+      renderCards(document.getElementById('searchInput').value);
+    }
+
+    function updateLab() {
+      const impact = +document.getElementById('impactRange').value;
+      const ease = +document.getElementById('easeRange').value;
+      const interest = +document.getElementById('interestRange').value;
+
+      document.getElementById('impactValue').textContent = impact;
+      document.getElementById('easeValue').textContent = ease;
+      document.getElementById('interestValue').textContent = interest;
+
+      const score = Math.round((impact * 0.45) + (ease * 0.20) + (interest * 0.35));
+      const materialName = materials[currentMaterial].name;
+      let msg = '';
+
+      if (score >= 85) {
+        msg = `${materialName} se ve como una exhibición estrella del museo: impacta, engancha al público y comunica aplicaciones muy atractivas.`;
+      } else if (score >= 70) {
+        msg = `${materialName} tiene muy buen potencial para la exhibición. Con una mejor narrativa visual, puede volverse una de las zonas favoritas del recorrido.`;
+      } else {
+        msg = `${materialName} sigue siendo interesante, pero conviene reforzar cómo se presenta su aplicación para que el público la entienda más rápido.`;
+      }
+
+      document.getElementById('labResult').textContent = msg;
+    }
+
+    function updateChartMode() {
+      currentChartMode = +document.getElementById('modeRange').value;
+      document.getElementById('chartModeLabel').textContent = chartModes[currentChartMode].name;
+      renderChart(false);
+    }
+
+    function renderChart(withVariation = false) {
+      const chart = document.getElementById('barChart');
+      const mode = chartModes[currentChartMode];
+      chart.innerHTML = '';
+
+      Object.entries(mode.values).forEach(([key, value]) => {
+        const adjusted = withVariation ? Math.max(18, Math.min(100, value + Math.round((Math.random() * 10) - 5))) : value;
+        const wrap = document.createElement('div');
+        wrap.className = 'bar-wrap';
+        wrap.innerHTML = `
+          <span class="bar-value">${adjusted}</span>
+          <div class="bar" style="height:${adjusted * 1.8}px; background:${materials[key].color};"></div>
+          <div class="bar-label">${materials[key].name}</div>
+        `;
+        chart.appendChild(wrap);
+      });
+    }
+
+    function randomizeChart() {
+      renderChart(true);
+    }
+
+    renderCards();
+    openMaterial('grafeno');
+    showScreen('menu');
+    updateChartMode();
+  </script>
+</body>
+</html>
